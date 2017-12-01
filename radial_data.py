@@ -5,6 +5,7 @@ from scipy.stats import norm,t
 #sys.path.append('/Users/jmilli/Dropbox/lib_py/image_utilities') # add path to our file
 #from image_tools import *
 
+# 2017-11-24 JMi: adapted the case of an odd image size
 # 2015-02-10 JMi: changed the definition of radial    
 # 2010-03-10 19:22 IJC: Ported to python from Matlab
 # 2005/12/19 Added 'working_region' option (IJC)
@@ -50,10 +51,18 @@ class Radial_data():
         if mask is None:
             mask = np.ones(data.shape,bool)        
         self.npix, self.npiy = data.shape
-        if xvect==None or yvect==None:
-            xvect = np.arange(-self.npix/2.,self.npix/2.)
-            yvect = np.arange(-self.npiy/2.,self.npiy/2.)
-            xmap,ymap = np.meshgrid(xvect,yvect)
+        if xvect is None or yvect is None:
+            if np.mod(self.npix,2)==0:
+                xvect = np.arange(-self.npix/2.,self.npix/2.)                
+            else:
+                xvect = np.arange(-self.npix/2.,self.npix/2.)+0.5          
+            if np.mod(self.npiy,2)==0:
+                yvect = np.arange(-self.npiy/2.,self.npiy/2.)                
+            else:
+                yvect = np.arange(-self.npiy/2.,self.npiy/2.)+0.5               
+#            xvect = np.arange(-self.npix/2.,self.npix/2.)
+#            yvect = np.arange(-self.npiy/2.,self.npiy/2.)
+        xmap,ymap = np.meshgrid(xvect,yvect)
         self.distmap = np.abs(xmap+1j*ymap)
         if rmax==None:
             rmax = np.max(self.distmap[mask])
@@ -171,22 +180,35 @@ class Radial_data():
             
 if __name__ == '__main__':
 
-
     import matplotlib.pyplot as plt
+    from image_tools import distance_array
 
-    sigma = 3
+    sigma = 3    
+    size=10
+#    fake_img = np.random.normal(np.random.randint(-5,5),np.random.rand(),(size,size))
+#    fake_img = distance_array((size,size),centerx=size/2.-0.5,centery=size/2.-0.5)
+    fake_img = distance_array((size,size))
+
+
+    plt.figure(0)
+    plt.imshow(fake_img,origin='lower')
+    plt.colorbar()
     
-    fake_img = np.random.normal(np.random.randint(-5,5),np.random.rand(),(20,20))
+#    rd=Radial_data(fake_img,xvect=np.arange(-size/2,size/2.)+0.5,yvect=np.arange(-size/2,size/2.)+0.5)
     rd=Radial_data(fake_img)
 
     # example of use 
-    plt.figure(0)
-    plt.plot(rd.r,rd.median,label='Median')
-    plt.plot(rd.r,rd.std,label='Std')
+    plt.figure(1)
+    plt.plot(rd.r,rd.mean,'ro',label='Mean')
+    plt.plot(rd.r,rd.std,'g:',label='Std')
+    plt.plot([0,size/2.*np.sqrt(2)],[0,size/2.*np.sqrt(2)],'b-',label='y=x')
     plt.xlabel('Separaton in px')
     plt.xlabel('Value in ADU')
+    plt.grid()
     plt.legend()        
 
+    print(rd.r)
+    print(rd.mean)
     # example to compute the penalty factor due to small sample statistics
     penalty_factor_1d=rd.get_penalty(1,sigma,verbose=True)
     penalty_factor_2d=rd.get_penalty(1,sigma,verbose=True,curve1d=False)
@@ -199,7 +221,7 @@ if __name__ == '__main__':
     penalty_1d=t.ppf(confidenceLevel, nbResels-1)*np.sqrt(1.+1./(nbResels))/sigma
 
     #we plot the comparison
-    plt.figure(1)
+    plt.figure(2)
     plt.plot(rd.r,penalty_factor_2d,'ro',label='2D from function',fillstyle='none')
     plt.plot(rd.r,penalty_factor_1d,'bo',label='1D from function',fillstyle='none')
     plt.plot(sep,penalty_2d,'rx',label='2D check')

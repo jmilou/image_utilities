@@ -25,13 +25,17 @@ def distance_array(shape,centerx=None,centery=None,verbose=True,fullOutput=False
     if len(shape) != 2 :
         raise ValueError('The shape must be a tuple of 2 elements for the y and x dimension!')
     if centerx == None:
-        centerx = shape[1]/2
+        centerx = shape[1]//2
         if np.mod(shape[1],2) == 0 and verbose:
-            print('The X dimension is even ({0:d}), the center is assumed to be in {1:.1f}'.format(shape[1],centerx))
+            print('The X dimension is even ({0:d}), the center is assumed to be in {1:d}. Use the option centerx={2:.1f} if the center is between 4 pixels'.format(shape[1],centerx,shape[1]/2.-0.5))
+        if np.mod(shape[1],2) == 1 and verbose:
+            print('The X dimension is odd ({0:d}), the center is assumed to be in {1:d}'.format(shape[1],centerx))
     if centery == None:
-        centery = shape[0]/2
+        centery = shape[0]//2
         if np.mod(shape[0],2) == 0 and verbose:
-            print('The Y dimension is even ({0:d}), the center is assumed to be in {1:.1f}'.format(shape[0],centery))
+            print('The Y dimension is even ({0:d}), the center is assumed to be in {1:d}. Use the option centery={2:.1f} if the center is between 4 pixels'.format(shape[0],centery,shape[0]/2.-0.5))
+        if np.mod(shape[0],2) == 1 and verbose:
+            print('The Y dimension is odd ({0:d}), the center is assumed to be in {1:d}'.format(shape[0],centery))
     x_array = np.arange(shape[1])-centerx
     y_array = np.arange(shape[0])-centery
     xx_array,yy_array=np.meshgrid(x_array,y_array)
@@ -113,9 +117,9 @@ def shift_cube_nofft(cube,dx,dy,verbose=True):
     elif not cube.ndim == 3:
         raise TypeError ('Input array is not a cube')
     nb_frames = cube.shape[0]
-    if isinstance(dx, (float,int,long,complex)):
+    if isinstance(dx, (float,int,complex)):
         dx = np.ones(nb_frames)*dx
-    if isinstance(dy, (float,int,long,complex)):
+    if isinstance(dy, (float,int,complex)):
         dy = np.ones(nb_frames)*dy
     if len(dx)!= nb_frames or len(dy)!=nb_frames:
         raise TypeError ('Input list of shifts has not the same length as the number of frames')
@@ -166,9 +170,9 @@ def shift_cube(cube,dx,dy,verbose=True):
     elif not cube.ndim == 3:
         raise TypeError ('Input array is not a cube')
     nb_frames = cube.shape[0]
-    if isinstance(dx, (float,int,long,complex)):
+    if isinstance(dx, (float,int,complex)):
         dx = np.ones(nb_frames)*dx
-    if isinstance(dy, (float,int,long,complex)):
+    if isinstance(dy, (float,int,complex)):
         dy = np.ones(nb_frames)*dy
     if len(dx)!= nb_frames or len(dy)!=nb_frames:
         raise TypeError ('Input list of shifts has not the same length as the number of frames')
@@ -303,7 +307,7 @@ def make_binned_indices(score,rebin,extrareject=0,plot=True):
     sorted_score = sorted(score)
     rebinned_sorted_score = np.ndarray((nb_rebinned))
     for i in np.arange(nb_reject,nb,rebin):
-        rebinned_sorted_score[i/rebin] = np.mean(sorted_score[i:i+rebin])
+        rebinned_sorted_score[i//rebin] = np.mean(sorted_score[i:i+rebin])
     if plot:
         plt.close(1)
         plt.figure(1)

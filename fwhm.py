@@ -40,7 +40,7 @@ def measureFWHM(array,offset=0.,fulloutput=False,verbose=True,plot=True):
         return hwhm_before,hwhm_after,fwhm
     return fwhm
 
-def getFWHMuncertainty(array,error,offset=0.,nbRealizations=long(10000)):
+def getFWHMuncertainty(array,error,offset=0.,nbRealizations=10000):
     """
     Computes the uncertainty on the FWHM by doing many measurements (10 000 by default)
     after introducing gaussian noise of 0 mean and dispersion error 

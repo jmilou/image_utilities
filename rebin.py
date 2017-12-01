@@ -16,7 +16,8 @@ def rebin2d(a, shape):
     		 original size.
     """
     sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
-    return a.reshape(sh).mean(-1).mean(1)
+    return np.nanmean(np.nanmean(a.reshape(sh),-1),1)
+#    return a.reshape(sh).mean(-1).mean(1)
 
 def rebin3d(cube, shape2d):
     """
@@ -39,7 +40,6 @@ def unitTest():
     
     print(x)
     print(y)
-    
     xr=rebin2d(x,(5,10))
     print(xr)
     

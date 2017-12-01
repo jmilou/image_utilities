@@ -72,12 +72,10 @@ def correctBadPixelInCube(cube,threshold=1,verbose=False):
     """
     This function finds the hot and dead pixels in a 3D dataset (cube of images). 
     Input:
-        - data: the 2d array to correct
+        - data: the 3d cube to correct
         - threshold: (optional) number of standard deviations used to cutoff 
                      the bad pixels.By default 1.
         - verbose:  (optional) to display the number of bad pixels
-        - details: (optional) to return a dictionary containing 
-                    the dead pixels, hot pixels and the combined dead and hot pixels
     Output:
         - a binary mask of the bad pixels (if details is False), or a dictionary
         containing 3 binary masks (if details is True)
@@ -161,6 +159,19 @@ def correctZimpolBadPixelInCube(cube, cx,cy,size=5,radius=60,threshold=20,verbos
         cleanedImage = correctZimpolBadPixelInFrame(cube[i,:,:],cx,cy,size=size,radius=radius,threshold=threshold,verbose=verbose)                
         cleanedCube[i,:,:] = cleanedImage
     return cleanedCube
+
+
+if __name__ == "__main__":
+    from astropy.io import fits
+    import os
+    pathTarget = '/Users/jmilli/Desktop/test_rebin'
+    pathRaw = os.path.join(pathTarget,'raw')
+    pathOut = os.path.join(pathTarget,'pipeline')        
+    fileNames = 'SPHER.2017-07-14T05:45:20.523_left.fits'
+    cube = fits.getdata(os.path.join(pathOut,fileNames))
+    cube_corrected = correctBadPixelInCube(cube,threshold=3,verbose=True)
+    fits.writeto(os.path.join(pathOut,fileNames).replace('.fits','_bp_corrected.fits'),cube_corrected,overwrite=True)
+
 
 ## test
 #from astropy.io import fits
