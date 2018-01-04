@@ -61,11 +61,11 @@ def angle_array(shape,centerx=None,centery=None,verbose=True,fullOutput=False):
     if len(shape) != 2 :
         raise ValueError('The shape must be a tuple of 2 elements for the y and x dimension!')
     if centerx == None:
-        centerx = shape[1]/2
+        centerx = shape[1]//2
         if np.mod(shape[1],2) == 0 and verbose:
             print('The X dimension is even ({0:d}), the center is assumed to be in {1:d}'.format(shape[1],centerx))
     if centery == None:
-        centery = shape[0]/2
+        centery = shape[0]//2
         if np.mod(shape[0],2) == 0 and verbose:
             print('The Y dimension is even ({0:d}), the center is assumed to be in {1:d}'.format(shape[0],centery))
     x_array = np.arange(shape[1])-centerx
