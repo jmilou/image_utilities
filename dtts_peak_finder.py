@@ -272,13 +272,17 @@ class Dtts_peak_finder():
                     fig.colorbar(im, cax=ax3)
                     if save is not None:
                         fig.savefig(save+'_{0:d}.pdf'.format(i))
-            plt.figure(1)
-            plt.clf()
-            plt.plot(self.fit_result['strength']*100,label='LWE strength',color='black')
-            plt.plot(self.fit_result['threshold']*100,label='LWE threshold',color='red')
-            plt.xlabel('Frame number')
-            plt.ylabel('Asymmetry in %')
-            plt.legend(frameon=False,loc='best')
+                    
+                    plt.figure(1)
+                    plt.clf()
+                    undetected_strength = [i for i,s in enumerate(self.fit_result['strength'][self.good_frames]) if s < self.fit_result['threshold'][self.good_frames][i]]
+                    detected_strength = [i for i,s in enumerate(self.fit_result['strength'][self.good_frames]) if s >= self.fit_result['threshold'][self.good_frames][i]]
+                    plt.plot(self.good_frames[undetected_strength],self.fit_result['strength'][self.good_frames][undetected_strength],'g.',label='undetected strength')
+                    plt.plot(self.good_frames[detected_strength],self.fit_result['strength'][self.good_frames][detected_strength],'r.',label='detected strength')
+                    plt.plot(self.good_frames, self.fit_result['threshold'][self.good_frames],'k:',linewidth=1.0,label='Threshold')
+                    plt.xlabel('Frame number')
+                    plt.ylabel('Asymmetry in %')
+                    plt.legend(frameon=False,loc='best')
         return 
         
 if __name__ == '__main__':
