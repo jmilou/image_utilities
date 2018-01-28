@@ -13,7 +13,8 @@ from scipy.signal import savgol_filter
 from matplotlib import pyplot as plt
 from vip.phot import noise_per_annulus
 from vip.conf import time_ini, timing, sep
-#from vip.var import frame_center, dist
+from vip.var import frame_center, dist # necessary for the function stat_per_annulus
+import photutils # necessary for the function stat_per_annulus
 
 def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=None,
                    sigma=5, inner_rad=1, wedge=(0,360),
@@ -271,4 +272,117 @@ def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=Non
         print('Finished the noise calculation')
         timing(start_time)
     return datafr
+
+
+def stat_per_annulus(array, separation, fwhm, init_rad=None, wedge=(0,360),
+                      verbose=False, debug=False):
+    """ Measures some statistics of an image such as the median, mean and 
+    standard deviation of apertures defined in
+    each annulus with a given separation.
+
+    Parameters
+    ----------
+    array : array_like
+        Input frame.
+    separation : float
+        Separation in pixels of the centers of the annuli measured from the
+        center of the frame.
+    fwhm : float
+        FWHM in pixels.
+    init_rad : float
+        Initial radial distance to be used. If None then the init_rad = FWHM.
+    wedge : tuple of floats, optional
+        Initial and Final angles for using a wedge. For example (-90,90) only
+        considers the right side of an image. Be careful when using small
+        wedges, this leads to computing a standard deviation of very small
+        samples (<10 values).
+    verbose : {False, True}, bool optional
+        If True prints information.
+    debug : {False, True}, bool optional
+        If True plots the positioning of the apertures.
+
+    Returns
+    -------
+    a dictionnary with keys:
+        std : array_like, Vector with the standard deviation value per annulus.
+        mean : array_like, Vector with the median value per annulus.
+        median : array_like, Vector with the mean value per annulus.
+        radius : array_like, Vector with the radial distances values.
+
+    """
+    def find_coords(rad, sep, init_angle, fin_angle):
+        angular_range = fin_angle-init_angle
+        npoints = (np.deg2rad(angular_range)*rad)/sep   #(2*np.pi*rad)/sep
+        ang_step = angular_range/npoints   #360/npoints
+        x = []
+        y = []
+        for i in range(int(npoints)):
+            newx = rad * np.cos(np.deg2rad(ang_step * i + init_angle))
+            newy = rad * np.sin(np.deg2rad(ang_step * i + init_angle))
+            x.append(newx)
+            y.append(newy)
+        return np.array(y), np.array(x)
+    #___________________________________________________________________
+
+    if not array.ndim==2:
+        raise TypeError('Input array is not a frame or 2d array')
+    if not isinstance(wedge, tuple):
+        raise TypeError('Wedge must be a tuple with the initial and final angles')
+
+    init_angle, fin_angle = wedge
+    centery, centerx = frame_center(array)
+    n_annuli = int(np.floor((centery)/separation))
+
+    x = centerx
+    y = centery
+    vector_std = []
+    vector_med = []
+    vector_mean = []
+    vector_radd = []
+    vector_nresel = []
+    if verbose:  print('{} annuli'.format(n_annuli-1))
+
+    if init_rad is None:  init_rad = fwhm
+
+    if debug:
+        _, ax = plt.subplots(figsize=(6,6))
+        ax.imshow(array, origin='lower', interpolation='nearest',
+                  alpha=0.5, cmap='gray')
+
+    for i in range(n_annuli-1):
+        y = centery + init_rad + separation*(i)
+        rad = dist(centery, centerx, y, x)
+        yy, xx = find_coords(rad, fwhm, init_angle, fin_angle)
+        yy += centery
+        xx += centerx
+
+        apertures = photutils.CircularAperture((xx, yy), fwhm/2.)
+        fluxes = photutils.aperture_photometry(array, apertures)
+        fluxes = np.array(fluxes['aperture_sum'])
+
+        std_ann = np.std(fluxes)
+        med_ann = np.median(fluxes)
+        mean_ann = np.mean(fluxes)
+        vector_std.append(std_ann)
+        vector_radd.append(rad)
+        vector_med.append(med_ann)
+        vector_mean.append(mean_ann)
+        vector_nresel.append(len(fluxes))
+        
+        if debug:
+            for i in range(xx.shape[0]):
+                # Circle takes coordinates as (X,Y)
+                aper = plt.Circle((xx[i], yy[i]), radius=fwhm/2., color='r',
+                              fill=False, alpha=0.8)
+                ax.add_patch(aper)
+                cent = plt.Circle((xx[i], yy[i]), radius=0.8, color='r',
+                              fill=True, alpha=0.5)
+                ax.add_patch(cent)
+
+        if verbose:
+            print('Radius(px) = {0:.0f}, mean = {1:3.1e}, med = {2:3.1e}, std = {3:3.1e} '.format(rad, mean_ann, med_ann, std_ann))
+
+    return {'std':np.array(vector_std), 'radius':np.array(vector_radd),\
+            'mean':np.array(vector_mean),'median':np.array(vector_med),\
+            'nresels':vector_nresel}
 
