@@ -6,12 +6,8 @@ Created on Mon Apr  3 14:38:45 2017
 @author: jmilli
 """
 from astropy.io import fits ,ascii
-#import os,sys
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec 
-#import glob
-#import vip
-#ds9=vip.fits.vipDS9()
 from astropy.modeling.functional_models import Gaussian2D
 import mpfit 
 from fwhm import fwhm2sig,sig2fwhm
@@ -69,7 +65,7 @@ class Dtts_peak_finder():
         max_cube = np.max(cube,axis=(1,2))
         if background=='auto':
             nbck = np.sum(max_cube<threshold_bck)
-            print('Automatic selection of {0:d} frames as backgrounds'.format(nbck))
+            #print('Automatic selection of {0:d} frames as backgrounds'.format(nbck))
         elif background=='False':
             nbck = 0
             print('Background selection was de-activated')
@@ -97,7 +93,7 @@ class Dtts_peak_finder():
             self.sky_med = np.median(self.bck_ref)              
             self.sky_rms = np.median(np.std(self.bck_cube,axis=(1,2)))                           
         else:
-            print('No background subtraction')
+            #print('No background subtraction')
             self.master_bck = np.zeros((self.ny,self.nx))
             self.sky_med = 0.            
             self.sky_rms = 1.                      
@@ -181,7 +177,8 @@ class Dtts_peak_finder():
             guess = [guess_dico['amp'],guess_dico['centerx'],guess_dico['centery'],guess_dico['sigx'],guess_dico['sigy'],guess_dico['theta']]                        
             m = mpfit.mpfit(self.gauss2D_fit_erf, guess, functkw=fa, parinfo=parinfo,quiet=1)# quiet=(not verbose)*1)  
             if m.status == 0:
-                print('Fit failed for frame {0:d}. Try to help the minimizer by providing a better first guess'.format(i))
+                if verbose:
+                    print('Fit failed for frame {0:d}. Try to help the minimizer by providing a better first guess'.format(i))
             else:
                 residuals = self.gauss2D_fit_erf(m.params,x=self.x_array,y=self.y_array,z=current_image,err=np.ones_like(current_image)*sky_rms)[1].reshape(current_image.shape)
                 self.residuals[i,:,:] = residuals #+self.bck #+sky_med
@@ -275,13 +272,17 @@ class Dtts_peak_finder():
                     fig.colorbar(im, cax=ax3)
                     if save is not None:
                         fig.savefig(save+'_{0:d}.pdf'.format(i))
-            plt.figure(1)
-            plt.clf()
-            plt.plot(self.fit_result['strength']*100,label='LWE strength',color='black')
-            plt.plot(self.fit_result['threshold']*100,label='LWE threshold',color='red')
-            plt.xlabel('Frame number')
-            plt.ylabel('Asymmetry in %')
-            plt.legend(frameon=False,loc='best')
+                    
+                    plt.figure(1)
+                    plt.clf()
+                    undetected_strength = [i for i,s in enumerate(self.fit_result['strength'][self.good_frames]) if s < self.fit_result['threshold'][self.good_frames][i]]
+                    detected_strength = [i for i,s in enumerate(self.fit_result['strength'][self.good_frames]) if s >= self.fit_result['threshold'][self.good_frames][i]]
+                    plt.plot(self.good_frames[undetected_strength],self.fit_result['strength'][self.good_frames][undetected_strength],'g.',label='undetected strength')
+                    plt.plot(self.good_frames[detected_strength],self.fit_result['strength'][self.good_frames][detected_strength],'r.',label='detected strength')
+                    plt.plot(self.good_frames, self.fit_result['threshold'][self.good_frames],'k:',linewidth=1.0,label='Threshold')
+                    plt.xlabel('Frame number')
+                    plt.ylabel('Asymmetry in %')
+                    plt.legend(frameon=False,loc='best')
         return 
         
 if __name__ == '__main__':
