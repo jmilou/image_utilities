@@ -14,6 +14,7 @@ sys.path.append('/Users/jmilli/Dropbox/lib_py/image_utilities')
 import rotation_images as rot
 from numpy.linalg import eig, inv
 import matplotlib.pylab as plt
+
 def ellipse_points(a,b,R,precision=0.2*math.pi/180, step_R=0.1,plot=True):
 
     """
@@ -54,7 +55,7 @@ def ellipse_points(a,b,R,precision=0.2*math.pi/180, step_R=0.1,plot=True):
                     guess = np.array([x0,y0])+direction
                     sol=nsolve((ellipse,cercle), (x, y), (guess[0],guess[1]))
                     trynextguess=False
-                except ValueError,e:
+                except ValueError as e:
                     nbguessiter += 1
                     print(e)
                     print('Initial guess changed. We retry: {0:4.0f} iterations'.format(
@@ -89,8 +90,6 @@ def ellipse_points(a,b,R,precision=0.2*math.pi/180, step_R=0.1,plot=True):
 
     return t_sol
 
-if __name__=='__main__':      # is file being called from prompt?
-   print "sample_ellipse file called from prompt"
    
   
 def elliptical_mask(size,a,b,epsilon=2.,delta=2.,yc=None,xc=None,theta=0):
@@ -446,3 +445,5 @@ def plot_ellipse(a,b,x0,y0,pa,verbose=True):
     plt.plot([x0],[y0],'ro')
     plt.grid()
     
+if __name__=='__main__':      
+   res = ellipse_points(100.,50.,4.,precision=0.2*math.pi/180, step_R=0.1,plot=True)

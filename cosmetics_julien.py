@@ -8,7 +8,6 @@ Modif on 20170207 to replace cv2 by scipy
 import numpy as np
 from scipy import signal,ndimage
 from scipy.ndimage import median_filter
-import cv2 
 
 def correctBadPixelInFrame(data,threshold=1,verbose=True,details=False):
     """
@@ -113,6 +112,7 @@ def correctZimpolBadPixelInFrame(array, cx,cy,size=5,radius=60,threshold=20,verb
      frame : array_like
          Frame with bad pixels corrected.
      """
+    import cv2
     if not array.ndim == 2:
         raise TypeError('Array is not a 2d array or single frame')
     if size % 2 == 0:

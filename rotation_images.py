@@ -8,7 +8,6 @@ Created on Mon Jun 15 08:41:37 2015
 import numpy as np
 import cv2
 
-
 def frame_rotate(array, angle, interpolation='bicubic', cy=None, cx=None):
     """ Rotates a frame.
     
@@ -17,7 +16,7 @@ def frame_rotate(array, angle, interpolation='bicubic', cy=None, cx=None):
     array : array_like 
         Input frame, 2d array.
     angle : float
-        Rotation angle.
+        Rotation angle in degrees. The image is rotated clockwise if the angle is >0
     interpolation : {'bicubic', 'bilinear', 'nearneig'}, optional
         'nneighbor' stands for nearest-neighbor interpolation,
         'bilinear' stands for bilinear interpolation,
@@ -41,7 +40,7 @@ def frame_rotate(array, angle, interpolation='bicubic', cy=None, cx=None):
     array = np.float32(array)	
     y, x = array.shape
     
-    if not cy and not cx:  cy, cx = y/2, x/2
+    if not cy and not cx:  cy, cx = y//2, x//2
     
     if interpolation == 'bilinear':
         intp = cv2.INTER_LINEAR
@@ -56,3 +55,14 @@ def frame_rotate(array, angle, interpolation='bicubic', cy=None, cx=None):
     array_out = cv2.warpAffine(array.astype(np.float32), M, (x, y), flags=intp)
              
     return array_out
+
+if __name__=='__main__':  
+    import pyds9 
+    ds9=pyds9.DS9()
+    test_image = np.random.rand(99,99)
+    test_image[49,:]=3
+    test_image[:,49]=3
+    ds9.set_np2arr(test_image)
+    test_image_r = frame_rotate(test_image, 90)
+    ds9.set_np2arr(test_image_r)
+    print(np.sum(test_image),np.sum(test_image_r))

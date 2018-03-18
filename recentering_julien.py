@@ -193,7 +193,7 @@ def frame_center_radon(array, cropsize=101, hsize=0.4, step=0.01, wavelet=False,
         theta = np.linspace(start=0., stop=360., num=cent*2, endpoint=False)
         sinogram = radon(frame_test, theta=theta, circle=True)
         pp_subplots(frame_test, sinogram)
-        print np.sum(np.abs(sinogram[cent,:]))
+        print(np.sum(np.abs(sinogram[cent,:])))
         
     if not nproc:   # Hyper-threading "duplicates" the cores -> cpu_count/2
         nproc = int(cpu_count()/2) 
@@ -206,7 +206,7 @@ def frame_center_radon(array, cropsize=101, hsize=0.4, step=0.01, wavelet=False,
         
     if verbose:  
         msg = 'Done {} radon transform calls distributed in {} processes'
-        print msg.format(len(coords), nproc)
+        print(msg.format(len(coords), nproc))
     
     if plot:          
         cost_bound = costf.reshape(listyx.shape[0], listyx.shape[0])
@@ -220,11 +220,11 @@ def frame_center_radon(array, cropsize=101, hsize=0.4, step=0.01, wavelet=False,
     argm = np.argmax(costf)
     optimy, optimx = coords[argm]
     
-    if debug:  print 'Cost function max: {}'.format(costf.max())
+    if debug:  print('Cost function max: {}'.format(costf.max()))
     
     if verbose: 
         msg = 'Finished grid search radon optimization. Y={:.5f}, X={:.5f}'
-        print msg.format(optimy, optimx)
+        print(msg.format(optimy, optimx))
         timing(start_time)
     return optimy, optimx
     

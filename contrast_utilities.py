@@ -11,9 +11,9 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy import stats
 from scipy.signal import savgol_filter
 from matplotlib import pyplot as plt
-from vip.phot import noise_per_annulus
-from vip.conf import time_ini, timing, sep
-from vip.var import frame_center, dist # necessary for the function stat_per_annulus
+#from vip.phot import noise_per_annulus
+#from vip.conf import time_ini, timing, sep
+#from vip.var import frame_center, dist # necessary for the function stat_per_annulus
 import photutils # necessary for the function stat_per_annulus
 
 def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=None,
@@ -92,7 +92,6 @@ def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=Non
             image[i] = image[i] / starphot[i]
 
     if verbose:
-        start_time = time_ini()
         if isinstance(starphot, float) or isinstance(starphot, int):
             msg0 = 'FWHM = {}, SIGMA = {},'
             msg0 += ' STARPHOT = {}'
@@ -100,7 +99,6 @@ def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=Non
         else:
             msg0 = 'FWHM = {}, SIGMA = {}'
             print(msg0.format(fwhm, sigma))
-        print(sep)
 
     # throughput
 
@@ -125,10 +123,13 @@ def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=Non
         vector_radd = np.arange(fwhm,image.shape[0]/2,fwhm)
         thruput_mean = np.ones_like(vector_radd)
         
-    # noise measured in the image, every px
-    # starting from 1*FWHM
-    noise_samp, rad_samp = noise_per_annulus(image, separation=1, fwhm=fwhm,
-                                             init_rad=fwhm, wedge=wedge)
+    # noise measured in the image, every px starting from 1*FWHM
+    dico_noise = stat_per_annulus(image, separation=1, fwhm=fwhm, init_rad=fwhm,\
+                                  wedge=wedge,verbose=False, debug=False)
+    noise_samp = dico_noise['std']
+    rad_samp = dico_noise['radius']
+#    noise_samp, rad_samp = noise_per_annulus(image, separation=1, fwhm=fwhm,
+#                                             init_rad=fwhm, wedge=wedge)
     cutin1 = np.where(rad_samp.astype(int)==vector_radd.astype(int).min())[0][0]
     noise_samp = noise_samp[cutin1:]
     rad_samp = rad_samp[cutin1:]
@@ -270,7 +271,6 @@ def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=Non
                                'distance': rad_samp, 'noise': noise_samp_sm})
     if verbose:
         print('Finished the noise calculation')
-        timing(start_time)
     return datafr
 
 
@@ -330,7 +330,8 @@ def stat_per_annulus(array, separation, fwhm, init_rad=None, wedge=(0,360),
         raise TypeError('Wedge must be a tuple with the initial and final angles')
 
     init_angle, fin_angle = wedge
-    centery, centerx = frame_center(array)
+
+    centery, centerx = array.shape[1]//2 , array.shape[0]//2
     n_annuli = int(np.floor((centery)/separation))
 
     x = centerx
@@ -351,7 +352,7 @@ def stat_per_annulus(array, separation, fwhm, init_rad=None, wedge=(0,360),
 
     for i in range(n_annuli-1):
         y = centery + init_rad + separation*(i)
-        rad = dist(centery, centerx, y, x)
+        rad = np.sqrt((centery-y)**2+(centerx-x)**2)
         yy, xx = find_coords(rad, fwhm, init_angle, fin_angle)
         yy += centery
         xx += centerx
