@@ -332,6 +332,34 @@ def make_binned_indices(score,rebin,extrareject=0,plot=True):
             else:
                 binned_indices[i]=-1
     return binned_indices
+
+def subtract_median(image,row=True,column=False):
+    """
+    Computes the median in each row/column/depth and subtracts it. 
+    This can be useful to get rid of some electronic
+    noise
+    Input:
+        - image: a 2D image or a 3D cube
+        - row: if True removes the median value of each row
+        - column: if True removes the median value of each column
+    Output:
+        - the filtered image
+    """
+    if image.ndim==2:
+        # image is a 2D image, axis=0 removes the median value of each column
+        #                      axis=1 removes the median value of each row
+        if row:
+            filtered_image = image - np.median(image,axis=1, keepdims=True)
+        if column:
+            filtered_image = image - np.median(image,axis=0, keepdims=True)      
+    elif image.ndim==3:
+        if row:
+            filtered_image = image - np.median(image,axis=2, keepdims=True)
+        if column:
+            filtered_image = image - np.median(image,axis=1, keepdims=True)      
+    else:
+        raise TypeError('The input array "image" must be a 2D or 3D numpy array')
+    return filtered_image
             
 if __name__ == "__main__":
     score = np.random.randn(40)
@@ -339,6 +367,23 @@ if __name__ == "__main__":
     print(binned_indices)
     binned_array =bin_array(score,binned_indices)
     print(binned_array)
+
+
+    cube = np.random.rand(2,10,10) 
+    cube[0,3,:] += 2
+    filtered_cube = subtract_median(cube,row=True,column=False)
+    plt.figure(0)
+    plt.imshow(cube[0,:,:])
+    plt.figure(1)
+    plt.imshow(filtered_cube[0,:,:])
+
+#    image = np.random.rand(10,10) 
+#    image[3,:] += 2
+#    filtered_image = subtract_median(image,row=False,column=True)
+#    plt.figure(0)
+#    plt.imshow(image)
+#    plt.figure(1)
+#    plt.imshow(filtered_image)
 
 #cube[3,:,:] = 10
 #binned_indices = [3,0,0,1,1,2,2,2,1]
