@@ -186,8 +186,8 @@ if __name__ == '__main__':
     sigma = 3    
     size=10
 #    fake_img = np.random.normal(np.random.randint(-5,5),np.random.rand(),(size,size))
-#    fake_img = distance_array((size,size),centerx=size/2.-0.5,centery=size/2.-0.5)
-    fake_img = distance_array((size,size))
+    fake_img = distance_array((size,size))#,centerx=size/2.-0.5,centery=size/2.-0.5)
+#    fake_img = distance_array((size,size))
 
 
     plt.figure(0)
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     plt.xlabel('Value in ADU')
     plt.grid()
     plt.legend()        
-
+#
     print(rd.r)
     print(rd.mean)
     # example to compute the penalty factor due to small sample statistics
