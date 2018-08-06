@@ -509,9 +509,8 @@ def cube_recenter_gauss2d_fit(array, xy, fwhm=4, subi_size=5, nproc=1,
         msg += 'Try with less than 20 frames in debug mode.'
         raise RuntimeWarning(msg)
     
-    pos_x, pos_y = xy
-    
-    if not isinstance(pos_x,int) or not isinstance(pos_y,int):
+    pos_x, pos_y = *xy,
+    if not isinstance(pos_x,(int,np.int64)) or not isinstance(pos_y,(int,np.int64)):
         raise TypeError('pos_x and pos_y should be ints')
 
     # TODO: verify correct handling of even/odd cases

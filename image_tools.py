@@ -393,17 +393,15 @@ def subtract_median(image,row=True,column=False):
         - the filtered image
     """
     if image.ndim==2:
-        # image is a 2D image, axis=0 removes the median value of each column
-        #                      axis=1 removes the median value of each row
         if row:
-            filtered_image = image - np.median(image,axis=1, keepdims=True)
+            filtered_image = image - np.nanmedian(image,axis=1, keepdims=True)
         if column:
-            filtered_image = image - np.median(image,axis=0, keepdims=True)      
+            filtered_image = image - np.nanmedian(image,axis=0, keepdims=True)      
     elif image.ndim==3:
         if row:
-            filtered_image = image - np.median(image,axis=2, keepdims=True)
+            filtered_image = image - np.nanmedian(image,axis=2, keepdims=True)
         if column:
-            filtered_image = image - np.median(image,axis=1, keepdims=True)      
+            filtered_image = image - np.nanmedian(image,axis=1, keepdims=True)      
     else:
         raise TypeError('The input array "image" must be a 2D or 3D numpy array')
     return filtered_image

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Aug 28 12:47:09 2015
-
+Modified on july 2018 to replace the mean in rebin2d into a sum, to avoid problem
+    of normalization.
 @author: jmilli
 """
 import numpy as np
