@@ -59,3 +59,16 @@ def unitTest():
     cube3dr = rebin3d(cube3d,(5,10))
     print(cube3dr[0,:,:])
     print(cube3dr[1,:,:])
+
+
+    test=np.zeros((200,200))
+    test[101,:]=1
+    test[98,:]=1
+    test[:,98]=1
+    test[:,101]=1
+    test[100,:]=2
+    test[99,:]=2
+    test[:,99]=2
+    test[:,100]=2
+#    ds9.display(test,rebin2d(test, (50,50)))
+

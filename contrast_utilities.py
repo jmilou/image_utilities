@@ -19,7 +19,7 @@ import photutils # necessary for the function stat_per_annulus
 def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=None,
                    sigma=5, inner_rad=1, wedge=(0,360),
                    student=True, transmission=None, smooth=True, plot=True,
-                   dpi=100, debug=False, verbose=True, **algo_dict):
+                   dpi=100, debug=False, verbose=True, rawContrast=False,**algo_dict):
     """ Computes the contrast curve for a given SIGMA (*sigma*) level. The 
     contrast is calculated as sigma*noise/throughput. This implementation takes
     into account the small sample statistics correction proposed in Mawet et al.
@@ -67,6 +67,9 @@ def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=Non
     verbose : {True, False, 0, 1, 2} optional
         If True or 1 the function prints to stdout intermediate info and timing,
         if set to 2 more output will be shown. 
+    rawContrast: {False, True}, bool optional by default False
+        If True, then the profile is the average median profile. If False then 
+        it is the std
     **algo_dict
         Any other valid parameter of the post-processing algorithms can be 
         passed here.
@@ -126,8 +129,12 @@ def contrast_curve_from_throughput(image, fwhm, pxscale, starphot,throughput=Non
     # noise measured in the image, every px starting from 1*FWHM
     dico_noise = stat_per_annulus(image, separation=1, fwhm=fwhm, init_rad=fwhm,\
                                   wedge=wedge,verbose=False, debug=False)
-    noise_samp = dico_noise['std']
     rad_samp = dico_noise['radius']
+    noise_samp = dico_noise['std']
+    if rawContrast:
+        noise_samp = dico_noise['median']
+    else:
+        noise_samp = dico_noise['std']
 #    noise_samp, rad_samp = noise_per_annulus(image, separation=1, fwhm=fwhm,
 #                                             init_rad=fwhm, wedge=wedge)
     cutin1 = np.where(rad_samp.astype(int)==vector_radd.astype(int).min())[0][0]

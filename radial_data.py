@@ -167,7 +167,7 @@ class Radial_data():
         # Convidence level corresponding to the given sigma level (gaussian)
         confidenceLevel = norm.cdf(sigma)
         if verbose:
-            print('The false alarm probability for {0:d} sigma is {1:6.2e}'.format(sigma,1-confidenceLevel))
+            print('The false alarm probability for {0:f} sigma is {1:6.2e}'.format(sigma,1-confidenceLevel))
             if curve1d:
                 print('You chose a 1D contrast curve')
             else:
