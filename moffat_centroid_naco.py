@@ -44,21 +44,21 @@ def moffat_centroid_naco(frame, img=None, lastcen=None,satlevel=None,box=None, v
     6. verbose = True if you want to check the parameters
     """
     
-    if img == None:
+    if np.any(img) == None:
         hdulist_psf = fits.open(frame)
         img = hdulist_psf[0].data
         hdulist_psf.close()
 
-    if lastcen == None:
+    if lastcen is None:
         lastcen = [img.shape[0] // 2, img.shape[1] // 2]
     lastcen[0] = int(lastcen[0])
     lastcen[1] = int(lastcen[1])
 
-    if satlevel == None:
+    if satlevel is None:
         satlevel = 10000.
         # satlevel = stats.scoreatpercentile(img2, 99)
 
-    if box == None:
+    if box is None:
         box = np.min([lastcen[0],lastcen[1],img.shape[0],img.shape[1],
                       img.shape[0]-lastcen[0],img.shape[1]-lastcen[1],51]) 
         # the default box size is 51px

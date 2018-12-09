@@ -35,13 +35,13 @@ def unitTest():
     """
     Function to test the rebin2d and rebin3d functions implemented above
     """
-    x1=np.arange(0,10)
-    y1=np.arange(10,20)
+    x1=np.arange(0,20)
+    y1=np.arange(10,30)
     x,y=np.meshgrid(x1,y1)
     
     print(x)
     print(y)
-    xr=rebin2d(x,(5,10))
+    xr=rebin2d(x,(5,5))
     print(xr)
     
     yr=rebin2d(y,(5,10))
