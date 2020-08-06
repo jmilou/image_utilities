@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 Created on Mon Jun 15 08:41:37 2015
 
@@ -40,8 +40,7 @@ def frame_rotate(array, angle, interpolation='bicubic', cy=None, cx=None):
     array = np.float32(array)	
     y, x = array.shape
     
-    if not cy and not cx:  cy, cx = y//2, x//2
-    
+    if not cy and not cx:  cy, cx = y//2, x//2    
     if interpolation == 'bilinear':
         intp = cv2.INTER_LINEAR
     elif interpolation == 'bicubic':
@@ -55,6 +54,7 @@ def frame_rotate(array, angle, interpolation='bicubic', cy=None, cx=None):
     array_out = cv2.warpAffine(array.astype(np.float32), M, (x, y), flags=intp)
              
     return array_out
+
 
 if __name__=='__main__':  
     import pyds9 

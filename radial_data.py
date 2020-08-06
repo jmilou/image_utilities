@@ -15,6 +15,20 @@ from scipy.stats import norm,t
 
 class Radial_data():
     """ Object containing some radial properties of the image
+
+    INPUT:
+    ------
+    data   - whatever data you are radially averaging.  Data is
+        binned into a series of annuli of width 'annulus_width'
+        pixels.
+    annulus_width - width of each annulus.  Default is 1.
+    mask - array of same size as 'data', with zeros at
+                  whichever 'data' points you don't want included
+                  in the radial data computations.
+    x,y - coordinate system in which the data exists (used to set
+            the center of the data).  By default, these are set to
+            integer meshgrids
+    rmax -- maximum radial value over which to compute statistics
     
     
      OUTPUT:

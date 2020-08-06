@@ -18,6 +18,12 @@ from fwhm import fwhm2sig,sig2fwhm
 from scipy.ndimage import gaussian_filter, median_filter  
 import numpy as np
 
+
+"""
+History:
+    2020-02-01: minor modifcation for the keyword save in the function fit_gaussian
+"""
+
 class ShiftFinder():
     """ Object to find the star in an image or a shift between 2 images, that implements 
     different techniques of peak fitting or correlation.
@@ -37,7 +43,7 @@ class ShiftFinder():
         - sub_image
         - self.guess_x, self.guess_y: the guessed position of the star, also used to crop the image
     Methods:
-        -
+        - fit_gaussian
     """ 
 
     def __init__(self,image,crop=None,mask=None,guess_xy=None,sky=None,threshold=None):
@@ -134,7 +140,7 @@ class ShiftFinder():
         status = 0
         return ([status, ((z-model)/err).ravel()])
                    
-    def fit_gaussian(self,plot=True,verbose=False,save=None,**kwargs):
+    def fit_gaussian(self,plot=True,verbose=False,save=None,return_full_maps=False,**kwargs):
         """
         Perform a fit of a 2D gaussian. 
         Input:
@@ -209,10 +215,15 @@ class ShiftFinder():
                        transform=ax1.transAxes,color='red', fontsize=15)
                 fig.colorbar(im, cax=ax3)
                 if save is not None:
-                    fig.savefig(save+'.pdf')
+                    if len(save)>4 and save[-4:]=='.pdf':
+                        fig.savefig(save)
+                    else:
+                        fig.savefig(save+'.pdf')
             null_dico = {'AMP':0,'X':0,'Y':0,'FWHMX':0,'FWHMY':0,'FWHM':0,'THETA':0,'ell':0}
             return null_dico,null_dico,0.,0.
-        residuals = self.gauss2D_fit_erf(m.params,x=x_array,y=y_array,z=self.subimage,err=np.ones_like(self.subimage)*self.sky_rms)[1].reshape(self.subimage.shape)
+        residuals = self.gauss2D_fit_erf(m.params,x=x_array,y=y_array,\
+                                         z=self.subimage,\
+                                         err=np.ones_like(self.subimage)*self.sky_rms)[1].reshape(self.subimage.shape)
         chi2 = np.sum(residuals**2)
         chi2_reduced = chi2 / m.dof
         sig = np.array([m.params[3],m.params[4]])
@@ -238,7 +249,10 @@ class ShiftFinder():
             ax1 = plt.subplot(gs[0,0]) # Area for the first plot
             ax2 = plt.subplot(gs[0,1]) # Area for the second plot
             ax3 = plt.subplot(gs[0,2]) # Area for the second plot
-            im = ax1.imshow(self.subimage,cmap='CMRmap',origin='lower', interpolation='nearest',extent=[self.guess_x-self.subimage_half_size_x,self.guess_x+self.subimage_half_size_x-1,self.guess_y-self.subimage_half_size_y,self.guess_y+self.subimage_half_size_y-1],vmin=np.nanmin(self.subimage),vmax=np.nanmax(self.subimage))
+            im = ax1.imshow(self.subimage,cmap='CMRmap',origin='lower', interpolation='nearest',\
+                            extent=[self.guess_x-self.subimage_half_size_x,self.guess_x+self.subimage_half_size_x-1,\
+                                    self.guess_y-self.subimage_half_size_y,self.guess_y+self.subimage_half_size_y-1],\
+                                    vmin=np.nanmin(self.subimage),vmax=np.nanmax(self.subimage))
             ax1.set_xlabel('X in px')
             ax1.set_ylabel('Y in px')
             ax1.contour(x_array+self.guess_x,y_array+self.guess_y,self.sky_median+Gaussian2D(m.params[0],m.params[1],m.params[2],m.params[3],m.params[4],np.radians(m.params[5]))(x_array,y_array),3,colors='w')
@@ -249,6 +263,17 @@ class ShiftFinder():
             fig.colorbar(im, cax=ax3)
             if save is not None:
                 fig.savefig(save+'.pdf')
+        if return_full_maps == True:
+            model = -np.asarray(self.gauss2D_fit_erf(m.params,x=x_array,y=y_array,\
+                                 z=np.zeros_like(self.subimage),\
+                                 err=np.ones_like(self.subimage))[1].reshape(self.subimage.shape))
+            map_model = np.zeros_like(self.image)
+            map_residuals = np.copy(self.image)     
+            map_model[self.guess_y-self.subimage_half_size_y:self.guess_y+self.subimage_half_size_y,\
+                                       self.guess_x-self.subimage_half_size_x:self.guess_x+self.subimage_half_size_x] = model
+            map_residuals[self.guess_y-self.subimage_half_size_y:self.guess_y+self.subimage_half_size_y,\
+                                       self.guess_x-self.subimage_half_size_x:self.guess_x+self.subimage_half_size_x] = residuals + self.sky_median
+            return fit_result,fit_error,chi2,chi2_reduced,map_model,map_residuals
         return fit_result,fit_error,chi2,chi2_reduced
         
 if __name__ == '__main__':

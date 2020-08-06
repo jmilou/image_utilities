@@ -129,6 +129,55 @@ def spider_mask(shape,centerx=None,centery=None,rmin=0,rmax=None,\
     else:
         return np.logical_or(mask_NE,mask_NW)
 
+def spider_mask_any_pa(shape,centerx=None,centery=None,rmin=0,rmax=None,\
+                pa=40,hwidth=4,verbose=True):
+    """
+    Create a binary mask for the diffraction patter of the spiders
+    Input:
+        - shape: a tuple indicating the desired shape of the output array, e.g. (100,100)
+                The 1st dim refers to the y dimension and the 2nd to the x dimension
+        - centerx: the center of the frame from which to compute the distance from
+                    by default shape[1]/2 (integer division). Accepts numerical value
+        - centery: same for the y dimension
+        - rmin: the minimum radius where the mask starts
+        - rmax: the maximum radius where the mask starts
+        - pa: the position angle of the spider. By default it is -40º
+        - verbose: to print a warning for even dimensions        
+    """
+    if len(shape) != 2 :
+        raise ValueError('The shape must be a tuple of 2 elements for the y and x dimension!')
+    if centerx == None:
+        centerx = shape[1]//2
+        if np.mod(shape[1],2) == 0 and verbose:
+            print('The X dimension is even ({0:d}), the center is assumed to be in {1:d}. Use the option centerx={2:.1f} if the center is between 4 pixels'.format(shape[1],centerx,shape[1]/2.-0.5))
+        if np.mod(shape[1],2) == 1 and verbose:
+            print('The X dimension is odd ({0:d}), the center is assumed to be in {1:d}'.format(shape[1],centerx))
+    if centery == None:
+        centery = shape[0]//2
+        if np.mod(shape[0],2) == 0 and verbose:
+            print('The Y dimension is even ({0:d}), the center is assumed to be in {1:d}. Use the option centery={2:.1f} if the center is between 4 pixels'.format(shape[0],centery,shape[0]/2.-0.5))
+        if np.mod(shape[0],2) == 1 and verbose:
+            print('The Y dimension is odd ({0:d}), the center is assumed to be in {1:d}'.format(shape[0],centery))
+    x_array = np.arange(shape[1])-centerx
+    y_array = np.arange(shape[0])-centery
+    xx_array,yy_array=np.meshgrid(x_array,y_array)
+    dist_center = np.abs(xx_array+1j*yy_array)
+    # the normal vector to the spider NE has coordinates (Y,X) = (sin(50),-cos(50))
+    spider_pa_rad = np.deg2rad(pa)
+    normal_vect_spider_NE_xy = np.array((np.cos(spider_pa_rad),np.sin(spider_pa_rad)))
+    dist_to_spider_NE = np.abs(xx_array*normal_vect_spider_NE_xy[0]+yy_array*normal_vect_spider_NE_xy[1])
+    mask_NE = np.logical_and(dist_to_spider_NE<hwidth,dist_center>=rmin)
+    if rmax is not None:
+        mask_NE = np.logical_and(mask_NE,dist_center<=rmax)
+
+    spider_NW_pa_rad = np.deg2rad(pa+80)
+    normal_vect_spider_NW_xy = np.array((np.cos(spider_NW_pa_rad),np.sin(spider_NW_pa_rad)))
+    dist_to_spider_NW = np.abs(xx_array*normal_vect_spider_NW_xy[0]+yy_array*normal_vect_spider_NW_xy[1])
+    mask_NW = np.logical_and(dist_to_spider_NW<hwidth,dist_center>=rmin)
+    if rmax is not None:
+        mask_NW = np.logical_and(mask_NW,dist_center<=rmax)
+    return np.logical_or(mask_NE,mask_NW)
+
 def shift_image_nofft(image,dx,dy,verbose=True):
     """ 
     Shifts an 2d array by dx, dy.  
@@ -426,6 +475,10 @@ if __name__ == "__main__":
     plt.figure(0)
     plt.imshow(dist_spider,origin='lower')
     
+
+    mask_spider_test = spider_mask_any_pa((400,400),centerx=200,centery=200,rmin=100,rmax=200,\
+                pa=-40,hwidth=4,verbose=True)
+
 #    image = np.random.rand(10,10) 
 #    image[3,:] += 2
 #    filtered_image = subtract_median(image,row=False,column=True)
